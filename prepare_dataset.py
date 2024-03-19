@@ -4,9 +4,11 @@ import cv2
 from torch.utils.data import Dataset
 import numpy as np
 from utils.pano_utils import panorama_to_plane
+from utils.blip_utils import blip_caption
 import shutil
 from annotator.mlsd import MLSDdetector
 from PIL import Image
+
 
 # path to Structured3D dataset
 BASE_PATH = '/mnt/shared/Structured3D/pano/'
@@ -30,9 +32,6 @@ def pano_to_perspectives(pano_path):
 
   return perspectives
         
-def blip_caption(img):
-  pass
-
 def mlsd(img):
     apply_mlsd = MLSDdetector()
     value_threshold=0.1
@@ -97,12 +96,12 @@ def main():
       for i, v in enumerate(full_perspectives):
         v.save(f'{OUTPUT_PATH}/perspective/{scene}_{room}_{i}_full.png')
         mlsd(v).save(f'{OUTPUT_PATH}/mlsd/{scene}_{room}_{i}_full.png')
-        blip_caption(v)
+        caption = blip_caption(v)
 
       for i, v in enumerate(empty_perspectives):
         v.save(f'{OUTPUT_PATH}/perspective/{scene}_{room}_{i}_empty.png')
         mlsd(v).save(f'{OUTPUT_PATH}/mlsd/{scene}_{room}_{i}_empty.png')
-        blip_caption(v)
+        caption = blip_caption(v)
 
       # generate BLIP and prompts data
       exit()
