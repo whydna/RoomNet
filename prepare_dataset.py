@@ -70,7 +70,7 @@ def parse_scene_annotation(path):
 def main():
   scenes = os.listdir(BASE_PATH)
 
-  with open(f'{OUTPUT_PATH}/captions.jsonl', 'a') as captions_file:
+  with open(f'{OUTPUT_PATH}/captions.jsonl', 'w') as captions_file:
 
     for scene in sorted(scenes):
       rooms = os.listdir(f'{BASE_PATH}/{scene}/2D_rendering');
@@ -94,19 +94,34 @@ def main():
         full_perspectives = pano_to_perspectives(full_pano_path)
         empty_perspectives = pano_to_perspectives(empty_pano_path)
 
-        # save the perspective image as well as MLSD
-        for i, v in enumerate(full_perspectives):
-          v.save(f'{OUTPUT_PATH}/perspective/{scene}_{room}_{i}_full.png')
-          caption_text = blip_caption(v, cond_text = "photo of a room")
-          captions_file.write(caption_text)
+        if len(full_perspectives) != len(empty_perspectives):
+          raise Exception("Number of perspectives did not match")
 
-        for i, v in enumerate(empty_perspectives):
-          v.save(f'{OUTPUT_PATH}/perspective/{scene}_{room}_{i}_empty.png')
-          mlsd(v).save(f'{OUTPUT_PATH}/mlsd/{scene}_{room}_{i}_empty.png')
-          caption_text = blip_caption(v, cond_text = "photo of a room")
-          captions_file.write(caption_text)
+        num_perspectives = len(full_perspectives)
 
-        # generate BLIP and prompts data
+        for i in range(num_perspectives):
+          print(f"Processing {scene}_{room}_{i}...")
+          full_img = full_perspectives[i]
+          empty_img = empty_perspectives[i]
+
+          # save perspective image
+          full_img.save(f'{OUTPUT_PATH}/perspective/{scene}_{room}_{i}_full.png')
+          empty_img.save(f'{OUTPUT_PATH}/perspective/{scene}_{room}_{i}_empty.png')
+
+          # save MLSD
+          mlsd(full_img).save(f'{OUTPUT_PATH}/mlsd/{scene}_{room}_{i}_full.png')
+          mlsd(empty_img).save(f'{OUTPUT_PATH}/mlsd/{scene}_{room}_{i}_empty.png')
+
+          # save captions
+          full_caption_text = blip_caption(full_img, cond_text = "photo of a room")
+          empty_caption_text = blip_caption(empty_img, cond_text = "photo of an empty room")
+
+          captions_file.write(json.dumps({
+            "id": f"{scene}_{room}_{i}",
+            "full": full_caption_text,
+            "empty": empty_caption_text,
+          }) + "\n")
+
         exit()
         
 
