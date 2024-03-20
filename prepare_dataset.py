@@ -70,42 +70,45 @@ def parse_scene_annotation(path):
 def main():
   scenes = os.listdir(BASE_PATH)
 
-  for scene in sorted(scenes):
-    rooms = os.listdir(f'{BASE_PATH}/{scene}/2D_rendering');
-  
-    room_type_map = parse_scene_annotation(f'{BASE_PATH}/{scene}/annotation_3d.json')
+  with open(f'{OUTPUT_PATH}/captions.jsonl', 'a') as captions_file:
 
-    for room in sorted(rooms):
-      room_type = room_type_map[room]
+    for scene in sorted(scenes):
+      rooms = os.listdir(f'{BASE_PATH}/{scene}/2D_rendering');
+    
+      room_type_map = parse_scene_annotation(f'{BASE_PATH}/{scene}/annotation_3d.json')
 
-      if ONLY_ROOM_TYPES and room_type not in ONLY_ROOM_TYPES:
-        continue
+      for room in sorted(rooms):
+        room_type = room_type_map[room]
 
-      # save panos
-      full_pano_path = f'{BASE_PATH}/{scene}/2D_rendering/{room}/panorama/full/rgb_rawlight.png'
-      empty_pano_path = f'{BASE_PATH}/{scene}/2D_rendering/{room}/panorama/empty/rgb_rawlight.png'
+        if ONLY_ROOM_TYPES and room_type not in ONLY_ROOM_TYPES:
+          continue
 
-      shutil.copy(full_pano_path, f'{OUTPUT_PATH}/panorama/{scene}_{room}_full.png')
-      shutil.copy(empty_pano_path, f'{OUTPUT_PATH}/panorama/{scene}_{room}_empty.png')
-      
-      # generate perspectives from pano
-      full_perspectives = pano_to_perspectives(full_pano_path)
-      empty_perspectives = pano_to_perspectives(empty_pano_path)
+        # save panos
+        full_pano_path = f'{BASE_PATH}/{scene}/2D_rendering/{room}/panorama/full/rgb_rawlight.png'
+        empty_pano_path = f'{BASE_PATH}/{scene}/2D_rendering/{room}/panorama/empty/rgb_rawlight.png'
 
-      # save the perspective image as well as MLSD
-      for i, v in enumerate(full_perspectives):
-        v.save(f'{OUTPUT_PATH}/perspective/{scene}_{room}_{i}_full.png')
-        mlsd(v).save(f'{OUTPUT_PATH}/mlsd/{scene}_{room}_{i}_full.png')
-        caption = blip_caption(v)
+        shutil.copy(full_pano_path, f'{OUTPUT_PATH}/panorama/{scene}_{room}_full.png')
+        shutil.copy(empty_pano_path, f'{OUTPUT_PATH}/panorama/{scene}_{room}_empty.png')
+        
+        # generate perspectives from pano
+        full_perspectives = pano_to_perspectives(full_pano_path)
+        empty_perspectives = pano_to_perspectives(empty_pano_path)
 
-      for i, v in enumerate(empty_perspectives):
-        v.save(f'{OUTPUT_PATH}/perspective/{scene}_{room}_{i}_empty.png')
-        mlsd(v).save(f'{OUTPUT_PATH}/mlsd/{scene}_{room}_{i}_empty.png')
-        caption = blip_caption(v)
+        # save the perspective image as well as MLSD
+        for i, v in enumerate(full_perspectives):
+          v.save(f'{OUTPUT_PATH}/perspective/{scene}_{room}_{i}_full.png')
+          caption_text = blip_caption(v, cond_text = "photo of a room")
+          captions_file.write(caption_text)
 
-      # generate BLIP and prompts data
-      exit()
-      
+        for i, v in enumerate(empty_perspectives):
+          v.save(f'{OUTPUT_PATH}/perspective/{scene}_{room}_{i}_empty.png')
+          mlsd(v).save(f'{OUTPUT_PATH}/mlsd/{scene}_{room}_{i}_empty.png')
+          caption_text = blip_caption(v, cond_text = "photo of a room")
+          captions_file.write(caption_text)
+
+        # generate BLIP and prompts data
+        exit()
+        
 
 if __name__ == "__main__":
   main()
