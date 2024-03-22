@@ -121,8 +121,6 @@ def main():
             "full": full_caption_text,
             "empty": empty_caption_text,
           }) + "\n")
-
-        exit()
         
 
 if __name__ == "__main__":
