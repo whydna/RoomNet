@@ -1,0 +1,19 @@
+accelerate launch train_controlnet_diffusers.py \
+--pretrained_model_name_or_path="stabilityai/stable-diffusion-2-1-base" \
+--output_dir="/mnt/shared/RoomNet" \
+--dataset_name="endyai/RoomNet" \
+--conditioning_image_column=full_mlsd \
+--image_column=empty \
+--caption_column=empty_caption \
+--resolution=512 \
+--learning_rate=1e-5 \
+--validation_image "./validation_images/living_room_1.jpeg" "./validation_images/living_room_2.jpeg" "././validation_images/living_room_3.jpeg" \
+--validation_prompt "Photo of an empty living room with white walls and windows" "Photo of an empty living room with white walls, big window and hardwood floors" "Photo of an empty living room with dark gray walls, and hardwood floors" \
+--train_batch_size=4 \
+--num_train_epochs=3 \
+--tracker_project_name="RoomNet" \
+--enable_xformers_memory_efficient_attention \
+--checkpointing_steps=5000 \
+--validation_steps=5000 \
+--report_to wandb \
+--push_to_hub
