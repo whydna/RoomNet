@@ -2,12 +2,10 @@ import os
 import json
 import cv2
 from torch.utils.data import Dataset
-import numpy as np
 from utils.pano_utils import panorama_to_plane
 from utils.blip_utils import blip_caption
+from utils.annotator_utils import pano_to_perspectives, mlsd
 import shutil
-from annotator.mlsd import MLSDdetector
-from PIL import Image
 
 
 # path to Structured3D dataset
@@ -16,27 +14,6 @@ BASE_PATH = '/mnt/shared/Structured3D/pano/'
 ONLY_ROOM_TYPES = ['living room']
 
 OUTPUT_PATH = '/mnt/shared/roomnet_dataset'
-
-def pano_to_perspectives(pano_path):
-  # Converts the panorama image into a perspective image of size 512x512.
-  # The perspective itself is at a random angle (yaw) of the 360 panorama.
-  fov = 120
-  output_size = (512, 512)
-  pitch = 90
-  yaw_step = 15
-
-  perspectives = []
-
-  for yaw in np.arange(0, 360, yaw_step):
-    perspectives.append(panorama_to_plane(pano_path, fov, output_size, yaw, pitch))
-
-  return perspectives
-        
-def mlsd(img):
-    apply_mlsd = MLSDdetector()
-    value_threshold=0.1
-    distance_threshold=0.1
-    return Image.fromarray(apply_mlsd(np.asarray(img), value_threshold, distance_threshold))
     
 def parse_scene_annotation(path):
   ROOM_TYPES = [
@@ -70,7 +47,7 @@ def parse_scene_annotation(path):
 def main():
   scenes = os.listdir(BASE_PATH)
 
-  with open(f'{OUTPUT_PATH}/captions.jsonl', 'w') as captions_file:
+  with open(f'{OUTPUT_PATH}/metadata.jsonl', 'w') as metadata_file:
 
     for scene in sorted(scenes):
       rooms = os.listdir(f'{BASE_PATH}/{scene}/2D_rendering');
@@ -105,21 +82,25 @@ def main():
           empty_img = empty_perspectives[i]
 
           # save perspective image
-          full_img.save(f'{OUTPUT_PATH}/perspective/{scene}_{room}_{i}_full.png')
-          empty_img.save(f'{OUTPUT_PATH}/perspective/{scene}_{room}_{i}_empty.png')
+          full_img.save(f'{OUTPUT_PATH}/full/{scene}_{room}_{i}.png')
+          empty_img.save(f'{OUTPUT_PATH}/empty/{scene}_{room}_{i}.png')
 
           # save MLSD
-          mlsd(full_img).save(f'{OUTPUT_PATH}/mlsd/{scene}_{room}_{i}_full.png')
-          mlsd(empty_img).save(f'{OUTPUT_PATH}/mlsd/{scene}_{room}_{i}_empty.png')
+          mlsd(full_img).save(f'{OUTPUT_PATH}/full_mlsd/{scene}_{room}_{i}.png')
+          mlsd(empty_img).save(f'{OUTPUT_PATH}/empty_mlsd/{scene}_{room}_{i}.png')
+
+          # superimpose MLSD on top of the image
+          # TODO: fill this out
+
 
           # save captions
-          full_caption_text = blip_caption(full_img, cond_text = "photo of a room")
-          empty_caption_text = blip_caption(empty_img, cond_text = "photo of an empty room")
+          full_caption_text = blip_caption(full_img, cond_text = "a room")
+          empty_caption_text = blip_caption(empty_img, cond_text = "an empty room")
 
-          captions_file.write(json.dumps({
+          metadata_file.write(json.dumps({
             "id": f"{scene}_{room}_{i}",
-            "full": full_caption_text,
-            "empty": empty_caption_text,
+            "full_caption": full_caption_text,
+            "empty_caption": empty_caption_text,
           }) + "\n")
         
 

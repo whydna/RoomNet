@@ -9,11 +9,13 @@ def gen_examples():
             data = json.loads(line)
 
             yield {
-                "full": {"path": f"/mnt/shared/roomnet_dataset/full/{data['id']}_full.png"},
-                "full_mlsd": {"path": f"/mnt/shared/roomnet_dataset/full_mlsd/{data['id']}_full.png"},
+                "full": {"path": f"/mnt/shared/roomnet_dataset/full/{data['id']}.png"},
+                "full_mlsd": {"path": f"/mnt/shared/roomnet_dataset/full_mlsd/{data['id']}.png"},
+                "full_superimposed": {"path": f"/mnt/shared/roomnet_dataset/full_superimposed/{data['id']}.png"},
                 "full_caption": data['full_caption'],
-                "empty": {"path": f"/mnt/shared/roomnet_dataset/empty/{data['id']}_empty.png"},
-                "empty_mlsd": {"path": f"/mnt/shared/roomnet_dataset/empty_mlsd/{data['id']}_empty.png"},
+                "empty": {"path": f"/mnt/shared/roomnet_dataset/empty/{data['id']}.png"},
+                "empty_mlsd": {"path": f"/mnt/shared/roomnet_dataset/empty_mlsd/{data['id']}.png"},
+                "empty_superimposed": {"path": f"/mnt/shared/roomnet_dataset/empty_superimposed/{data['id']}.png"},
                 "empty_caption": data['empty_caption'],
             }
 
@@ -22,9 +24,11 @@ dataset = Dataset.from_generator(
     features=Features(
         full=ImageFeature(),
         full_mlsd=ImageFeature(),
+        full_superimposed=ImageFeature(),
         full_caption=Value("string"),
         empty=ImageFeature(),
         empty_mlsd=ImageFeature(),
+        empty_superimposed=ImageFeature(),
         empty_caption=Value("string")
     ),
     num_proc=8,
