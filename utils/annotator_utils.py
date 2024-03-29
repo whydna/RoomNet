@@ -1,4 +1,5 @@
 from annotator.mlsd import MLSDdetector
+from annotator.uniformer import UniformerDetector
 import numpy as np
 from PIL import Image
 import cv2
@@ -23,3 +24,8 @@ def mlsd(img):
     value_threshold=0.1
     distance_threshold=0.1
     return Image.fromarray(apply_mlsd(np.asarray(img), value_threshold, distance_threshold))
+
+def uniformer(img):
+    model_uniformer = UniformerDetector()
+    result = model_uniformer(img)
+    return [result]

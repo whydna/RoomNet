@@ -10,7 +10,7 @@ accelerate launch train_controlnet.py \
 --validation_image "./validation_images/living_room_superimposed_1.jpeg" "./validation_images/living_room_superimposed_2.jpeg" "././validation_images/living_room_superimposed_3.jpeg" \
 --validation_prompt "an empty room with white walls and windows" "an empty room with white walls, big window and hardwood floors" "an empty room with dark gray walls, and hardwood floors" \
 --train_batch_size=4 \
---num_train_epochs=10 \
+--num_train_epochs=50 \
 --tracker_project_name="RoomNet-supermlsd" \
 --enable_xformers_memory_efficient_attention \
 --checkpointing_steps=5000 \
